@@ -21,7 +21,7 @@
 -- [2.5,10.0,3.33,1.0,2.5]
 
 -- *Main> repIdentical2 [1,1,1,5,5,3,1,1,222,222,222,222]
--- [1,5,3,222]
+-- [1,5,3,1,222]
 
 -- *Main> prime1 20 27
 -- True
@@ -45,7 +45,7 @@ repIdentical1 (x:xs)
 -- Завдання 1.4 б:
 repIdentical2 :: (Eq a) => [a] -> [a]
 repIdentical2 [] = []
-repIdentical2 (x:xs) = x : repIdentical2 (filter (/=x) xs) 
+repIdentical2 (x:xs) = x : repIdentical2 (dropWhile (==x) xs) 
 
 -- Завдання 2.4 a:
 prime1 :: Integer  -> Integer -> Bool
