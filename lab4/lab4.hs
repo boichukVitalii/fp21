@@ -13,32 +13,59 @@
 -- Доступнi шрифти — Consolas, Lucida Console та Source Code Pro. 
 -- Визначте функцiї для: отримання прямокутника, який мiстить усi фiгури iз заданого списку.
 
-
 -- Тести:
--- *Main> getRectangles [(Circle (1, 1) 5),(Rectangle (1, 2) (4, 4)),(Triangle (0, 0) (2, 2) (3,3))]
--- [Circle (1,1) 5,Rectangle (1,2) (4,4),Triangle (0,0) (2,2) (3,3)]
+-- *Main> getRectangle [Circle 0 0 5, Rectangle 1 1 7 7, Triangle 0 0 7 7 7 0, TextBox 0 0 Consolas "hello"]
+--  Rectangle (-5.0) (-8.0) 40.0 7.0
 
--- *Main> getRectangles [(Circle (1, 4) 10),(Rectangle (2, 2) (3, 3)),(Triangle (1, 2) (3, 4) (5,7)), (Label (3, 3) Consolas "labslabs")]
--- [Circle (1,4) 10,Rectangle (2,2) (3,3),Triangle (1,2) (3,4) (5,7),Label (3,3) Consolas "labslabs"]
 
-data Font = Consolas 
-    | LucidaConsole 
-    | SourceCodePro 
-    deriving (Eq, Show)
+data Font = Consolas | SourceCode | Lucida deriving (Eq, Show)
 
-data Figure 
-    = Circle (Integer, Integer) Integer
-  | Rectangle (Integer, Integer) (Integer, Integer)
-  | Triangle (Integer, Integer) (Integer, Integer) (Integer, Integer)
-  | Label (Integer, Integer) Font String
-  deriving (Eq, Show)
+data Figure = Circle Float Float Float | Rectangle Float Float Float Float | Triangle Float Float Float Float Float Float
+              | TextBox  Float Float Font String deriving (Eq, Show)
 
-getRectangle :: [Figure] -> [Figure]
-getRectangle [] = []
-getRectangle ((Rectangle (x1, y1) (x2, y2)) : fs) = Rectangle (x1, y1) (x2, y2) : getRectangle fs
-getRectangle ((Circle (x1, y1) n) : fs) = Circle (x1, y1) n : getRectangle fs
-getRectangle ((Triangle (x1, y1) (x2, y2) (x3, y3)) : fs) = Triangle (x1, y1) (x2, y2) (x3, y3) : getRectangle fs
-getRectangle ((Label (x1, y1) fnt str) : fs) = Label (x1, y1) fnt str : getRectangle fs
+getLetterSize :: Font -> Float
+getLetterSize Consolas  = 6
+getLetterSize SourceCode = 8
+getLetterSize Lucida   = 10
+
+getRectangles :: [Figure] -> [Figure]
+getRectangles [] = []
+getRectangles ((Rectangle x1 y1 x2 y2):fs) = Rectangle x1 y1 x2 y2 : getRectangles fs
+getRectangles ((Circle {}):fs) = getRectangles fs
+getRectangles ((Triangle {}):fs) = getRectangles fs
+getRectangles ((TextBox {}):fs) = getRectangles fs
+
+getBound :: Figure -> Figure
+getBound (Rectangle x1 y1 x2 y2)     = Rectangle x1 y1 x2 y2
+getBound (Circle x y r)              = Rectangle (x-r) (y-r) (x+r) (y+r)
+getBound (TextBox x y f s)           = Rectangle x (y-getLetterSize f) (x+fromIntegral (length s) * getLetterSize f) y
+getBound (Triangle x1 y1 x2 y2 x3 y3)= Rectangle (min x1 (min x2 x3)) (max y1 (max y2 y3)) (max x1 (max x2 x3)) (min y1 (min y2 y3))
+
+getBounds :: [Figure] -> [Figure]
+getBounds = map getBound
+
+getMinX1 :: [Figure] -> Float
+getMinX1 [] = 0
+getMinX1 [Rectangle x1 y1 x2 y2] = x1
+getMinX1 ((Rectangle x1 y1 x2 y2):xs) = min x1 (getMinX1 xs)
+
+getMaxX2 :: [Figure] -> Float
+getMaxX2 [] = 0
+getMaxX2 [Rectangle x1 y1 x2 y2] = x2
+getMaxX2 ((Rectangle x1 y1 x2 y2):xs) = max x2 (getMaxX2 xs)
+
+getMinY1 :: [Figure] -> Float
+getMinY1 [] = 0
+getMinY1 [Rectangle x1 y1 x2 y2] = y1
+getMinY1 ((Rectangle x1 y1 x2 y2):xs) = min y1 (getMinY1 xs)
+
+getMaxY2 :: [Figure] -> Float
+getMaxY2 [] = 0
+getMaxY2 [Rectangle x1 y1 x2 y2] = y2
+getMaxY2 ((Rectangle x1 y1 x2 y2):xs) = max y2 (getMaxY2 xs)
+
+getRectangle :: [Figure] -> Figure
+getRectangle x = Rectangle (getMinX1 (getBounds x))  (getMinY1 (getBounds x)) (getMaxX2 (getBounds x)) (getMaxY2 (getBounds x))
 
 
 -- Висновок: Під час виконання лабораторної роботи, ми ознайомилися та 
